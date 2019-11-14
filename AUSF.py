@@ -16,7 +16,7 @@ def KDF_seaf(K_ausf, P0, L0):
     K_seaf = hmac.new(key, s, digestmod=sha256).hexdigest()
     return K_seaf
 
-def KDF_hxres_star(xres_star, rand):
+def KDF_hxres_star(rand, xres_star):
     s =rand+xres_star
     tmp = sha256()
     tmp.update(s)
@@ -37,8 +37,8 @@ def UDM_resolve(data):
 def HE_AV_resolve(data):
     rand=data[:32]
     autn=data[32:64]
-    xres_star=data[64:128]
-    K_ausf=data[128:]
+    xres_star=data[64:96]
+    K_ausf=data[96:]
     return rand, autn, xres_star, K_ausf
 
 def Generate_AV(rand,autn,hxres_star,K_seaf):
@@ -94,7 +94,7 @@ def main():
             HE_AV, supi = UDM_resolve(data)
             rand, autn, xres_star, K_ausf = HE_AV_resolve(HE_AV)
             K_seaf = KDF_seaf(K_ausf, P0, L0)
-            hxres_star = KDF_hxres_star(xres_star, rand)
+            hxres_star = KDF_hxres_star(rand, xres_star)
             AV = Generate_AV(rand, autn, hxres_star, K_seaf)
             avlength = len(AV)
             print 'AV length is:' + str(avlength)
@@ -104,6 +104,7 @@ def main():
 
         elif length == 32:
             print 'accept Xres* from SEAF'
+            print data
             if str(data) == str(xres_star):  # 检验接收到的res*
                 message = 'successful'
                 print 'successful'
@@ -112,33 +113,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
