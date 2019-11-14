@@ -109,7 +109,6 @@ def main():
                 message = 'successful from AUSF'
                 print 'successful from AUSF'
                 SentTo_SEAF(message, host2, port2)
-                break
 
 
 if __name__ == "__main__":
