@@ -76,8 +76,7 @@ def main():
             length = len(data)
             ##supi
             if length < 32:
-                print 'get SUCI and snName from UE:'
-                print data
+                print 'get SUCI and snName from UE:'+data
                 print 'send SUCI and snName to AUSF'
                 SentTo_AUSF(data, host2, port2)
 
@@ -86,7 +85,7 @@ def main():
                 AV, supi = AUSF_resolve(data)
                 global hxres_star, K_seaf, rand  # save these three parameters
                 rand, autn, hxres_star, K_seaf = AV_resolve(AV)
-                print 'hxres_star:'+hxres_star
+                # print 'hxres*:'+hxres_star
                 message = rand + autn
                 message=str(message)
                 SentTo_UE(message, host3, port3)
@@ -97,12 +96,12 @@ def main():
                 res_star = data
 
                 hres_star = KDF_hres_star(rand, res_star)
-                print 'hres* is'
-                print hres_star
+                print 'hres* :'+ hres_star
                 # check
                 if str(hres_star) == str(hxres_star):
                     print 'SEAF Authentication successful'
                     SentTo_AUSF(res_star, host2, port2)
+                    break
                 else:
                     print 'SEAF Authentication fail'
 
