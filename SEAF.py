@@ -75,10 +75,11 @@ def main():
             data = sock.recv(1024)
             length = len(data)
             ##supi
-            if length < 32:
+            if length < 32 and data != 'successful from AUSF':
                 print 'get SUCI and snName from UE:'+data
                 print 'send SUCI and snName to AUSF'
                 SentTo_AUSF(data, host2, port2)
+
 
             elif length >= 160:
                 print 'get 5gAV and SUPI from AUSF'
@@ -101,13 +102,14 @@ def main():
                 if str(hres_star) == str(hxres_star):
                     print 'SEAF Authentication successful'
                     SentTo_AUSF(res_star, host2, port2)
-                    break
                 else:
                     print 'SEAF Authentication fail'
 
             elif length == 48:
                 print 'get auts from UE'
                 print 'Authentication failed'
+            elif data == 'successful from AUSF':
+                print 'successful from AUSF'
 
 
 
