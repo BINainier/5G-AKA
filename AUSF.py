@@ -70,15 +70,15 @@ def main():
     #listen to port 6001
     server.listen(5)
     print('Waiting for connection...')
-    print('等待与SEAF和UDM连接...')
+    # print('等待与SEAF和UDM连接...')
     while True:
         sock, addr = server.accept()
         print 'got connected from', addr
         data = sock.recv(1024)
         length = len(data)
         if length < 32:
-            print 'accept suci and sn name from seaf'
-            print 'suci and sn name is:' + data
+            # print 'accept suci and sn name from seaf'
+            # print 'suci and sn name is:' + data
             suci, snName = SEAF_resolve(data)
             global P0
             P0 =  binascii.hexlify(snName)  # sn name
@@ -97,18 +97,19 @@ def main():
             hxres_star = KDF_hxres_star(rand, xres_star)
             AV = Generate_AV(rand, autn, hxres_star, K_seaf)
             avlength = len(AV)
-            print 'AV length is:' + str(avlength)
-            print 'the result of Av is' + AV
+            # print 'AV length is:' + str(avlength)
+            # print 'the result of Av is' + AV
             message = str(AV) + str(supi)
             SentTo_SEAF(message, host2, port2)
 
         elif length == 32:
-            print 'accept Xres* from SEAF'
-            print data
+            # print 'accept Xres* from SEAF'
+            # print data
             if str(data) == str(xres_star):  # 检验接收到的res*
-                message = 'successful'
-                print 'successful'
+                message = 'successful from AUSF'
+                print 'successful from AUSF'
                 SentTo_SEAF(message, host2, port2)
+                break
 
 
 if __name__ == "__main__":
