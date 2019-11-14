@@ -38,11 +38,10 @@ def KDF_xres(key, P0, L0, P1, L1,P2,L2):
     #generate Xres_star
     appsecret = key
     s = '6B' + P0 + L0 + P1 + L1+ P2 + L2
-    print 's:' +s
+    # print 's:' +s
     tmp=hmac.new(appsecret, s, digestmod=sha256).hexdigest()
     xres_star=tmp[32:]
-    print 'xres * is'
-    print xres_star
+    print 'xres* :'+xres_star
     return xres_star
 
 def SentTo_AUSF(data,host,port):
@@ -85,8 +84,6 @@ def Init():
     sqn = '1234567888d8'
     amf = '8d00'
     op = 'cda0c2852846d8eb63a387051cdd1fa5'
-    print 'rand:'
-    print rand
     return ki,rand,sqn,amf,op
 
 def main():
@@ -105,41 +102,30 @@ def main():
     rand = binascii.unhexlify(rand)
     sqn = binascii.unhexlify(sqn)
     amf = binascii.unhexlify(amf)
-    print 'amf is'
-    print amf
+    # print 'amf is'
+    # print amf
     opc = milenage.MilenageGenOpc(ki, op)
-    #test opc result
-    print 'ki:'
-    print ki
-    print 'rand'
-    print rand
-    print 'opc:'
-    print opc
     xres, ck, ik, AUTN, ak = milenage.Milenage(ki, opc, rand, sqn, amf)
-    print 'ck,ik:'
-    print ck,ik
-    print 'xres is'
-    print binascii.hexlify(xres)
-    # generate K_ausf
+    # print 'xres:'+xres
+
     key = ck + ik
-    # P0 = 'xidian'  # accept from AUSF
-    # L0 = '06'  # accept from AUSF
+    # P0 = 'xiiian'  # accept from AUSF
+    # L0 = len(P0)  # accept from AUSF
     P0 = str(data)[21:]
-    L0 = str(len(P0))
+    L0 = binascii.hexlify(str(len(P0)))
+
     P1 = binascii.hexlify(milenage.LogicalXOR(sqn, ak))
-    L1 = '06'
+    L1 = binascii.hexlify(str(len(P1)))
     K_ausf = KDF_ausf(key, P0, L0, P1, L1)
 
     #generate xres*
     P1 = binascii.hexlify(rand)
-    L1 = str(len(rand))
+    L1 = binascii.hexlify(str(len(rand)))
     P2 = binascii.hexlify(xres)
-    L2 = str(len(xres))
+    L2 = binascii.hexlify(str(len(xres)))
     AUTN = binascii.hexlify(AUTN)
-    print 'AUTN is'
-    print AUTN
     xres_star = KDF_xres(key, P0, L0, P1, L1, P2, L2)
-    print str(len(rand))+' '+str(len(AUTN))+' '+str(len(xres_star))+'0'+str(len(K_ausf))
+    # print str(len(rand))+' '+str(len(AUTN))+' '+str(len(xres_star))+'0'+str(len(K_ausf))
     rand=binascii.hexlify(rand)
     HE_AV = rand + AUTN + xres_star + K_ausf
     print 'the result of HE_AV is：\n'
