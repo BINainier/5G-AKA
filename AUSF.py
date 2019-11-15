@@ -55,7 +55,7 @@ def SentTo_UDM(data,host3,port3):
 def SentTo_SEAF(data,host2,port2):
     client2 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client2.connect((host2, port2))
-    print 'send 5g AV and SUPI To SEAF\n'
+
     client2.send(data)
 
 def main():
@@ -100,6 +100,7 @@ def main():
             # print 'AV length is:' + str(avlength)
             # print 'the result of Av is' + AV
             message = str(AV) + str(supi)
+            print 'send 5g AV and SUPI To SEAF\n'
             SentTo_SEAF(message, host2, port2)
 
         elif length == 32:
