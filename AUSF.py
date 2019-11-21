@@ -7,6 +7,8 @@ import binascii
 import hmac
 from hashlib import sha256
 import socket
+import time
+
 def KDF_seaf(K_ausf, P0, L0):
     # generate K_seaf
     # P0 seiving net work name
@@ -49,31 +51,37 @@ def Generate_AV(rand,autn,hxres_star,K_seaf):
 def SentTo_UDM(data,host3,port3):
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client.connect((host3, port3))
-    print 'send suci and SNname To UDM\n'
+    data='04'+data
+
     client.send(data)
+    client.close()
 
 def SentTo_SEAF(data,host2,port2):
     client2 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client2.connect((host2, port2))
+    data='02'+data
 
     client2.send(data)
+    client2.close()
 
 def main():
     host = ''  #  LOCAL Server IP
-    host2 = '127.0.0.1'  # SEAF Server IP
-    host3='127.0.0.1' # UDM Server IP
+    host2 = '127.0.0.1'  # Channel Server IP
+    host3='127.0.0.1' # Channel Server IP
     port = 6001  # LOCAL Server Port
-    port2 = 7001  # SEAF Server Port
-    port3=9999 # UDM ServerPort
+
+    port2=10000 #Channel Server Port
+
+    port3 = 10000  # Channel Server Port
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server.bind((host, port))
     #listen to port 6001
     server.listen(5)
-    print('Waiting for connection...')
-    # print('等待与SEAF和UDM连接...')
+    print('AUSF:\nWaiting for connection with SEAF...\n')
+    fp = open('ausf.log', 'a+')
     while True:
         sock, addr = server.accept()
-        print 'got connected from', addr
+
         data = sock.recv(1024)
         length = len(data)
         if length < 32:
@@ -85,10 +93,13 @@ def main():
             global L0
             # sn name格式？ sn name的长度如何定义？
             L0 = str(len(snName))  # length of sn name
+            print 'Send SUCI and SNname To UDM.\n'
             SentTo_UDM(data, host3, port3)  # send it to UDM
+            fp.write(time.asctime(time.localtime(time.time()))+'        Send SUCI and SNname To UDM.\n')
 
         elif length >= 160:
-            print 'accept 5g HE AV and supi from UDM'
+            print 'Receive 5g HE AV and SUPI from UDM.\n'
+            fp.write(time.asctime(time.localtime(time.time()))+'        Receive 5g HE AV and SUPI from UDM.\n')
             global xres_star
             xres_star = 0
             HE_AV, supi = UDM_resolve(data)
@@ -100,16 +111,19 @@ def main():
             # print 'AV length is:' + str(avlength)
             # print 'the result of Av is' + AV
             message = str(AV) + str(supi)
-            print 'send 5g AV and SUPI To SEAF\n'
             SentTo_SEAF(message, host2, port2)
+            print 'Send 5g AV and SUPI To SEAF.\n'
+            fp.write(time.asctime(time.localtime(time.time()))+'        Send 5g AV and SUPI To SEAF.\n')
 
         elif length == 32:
             # print 'accept Xres* from SEAF'
             # print data
             if str(data) == str(xres_star):  # 检验接收到的res*
                 message = 'successful from AUSF'
-                print 'successful from AUSF'
+                print 'Send Authenticate Response to SEAF.\n'
                 SentTo_SEAF(message, host2, port2)
+                fp.write(time.asctime(time.localtime(time.time()))+'        Send Authenticate Response to SEAF.\n')
+                fp.close()
 
 
 if __name__ == "__main__":

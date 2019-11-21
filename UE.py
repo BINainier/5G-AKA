@@ -10,6 +10,7 @@ from hashlib import sha256
 import socket
 import milenage
 import random
+import time
 
 def Generate_IMSI():
     imsi = '46000'
@@ -32,10 +33,28 @@ def Send_To_SEAF(host, port):
     suci = Generate_SUCI(imsi)
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client.connect((host, port))
-    # print 'SUCI IS :'+suci
+
     suci=suci+sn_name
-    print 'send SUCI to SEAF\n'
-    client.send(suci)
+    data='02'+suci
+
+    client.send(data)
+    client.close()
+def Send_res_star_To_SEAF(res_star, host, port):
+    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    client.connect((host, port))
+    print 'Access! Send res* to SEAF\n'
+    data='02'+res_star
+    client.send(data)
+    client.close()
+
+def Send_auts_To_SEAF(auts, host, port):
+    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    client.connect((host, port))
+    print 'AUTS Fails!\n Send auts to SEAF'
+    data='02'+auts
+
+    client.send(data)
+    client.close()
 
 #reveive Auth-Req(rand, AUTN) from SEAF
 def reveive_authreq_from_SEAF(port):
@@ -46,13 +65,12 @@ def reveive_authreq_from_SEAF(port):
     server.bind(ADDR)
     server.listen(5)
     while True:
-        print 'Waiting for connection...'
         tcpCliSock, addr = server.accept()
         print 'Waiting for connection with SEAF...'
-        print 'got connected from ', addr
+        print 'got connected from SEAF'
         data = tcpCliSock.recv(1024)
 
-        print 'get data from SEAF:\n'
+        print 'receive Auth-Req from SEAF\n'
 
         return data
 
@@ -117,11 +135,7 @@ def check_sqn(sqn):
     pass
 
 #send res* to seaf
-def Send_res_star_To_SEAF(res_star, host, port):
-    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    client.connect((host, port))
-    print 'send res* to SEAF\n'
-    client.send(res_star)
+
 
 #generate auts
 def generate_auts(sqn_ms, ak_star, xmac_s):
@@ -131,12 +145,7 @@ def generate_auts(sqn_ms, ak_star, xmac_s):
     return auts
 
 #send auts to seaf
-def Send_auts_To_SEAF(auts, host, port):
-    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    client.connect((host, port))
-    print 'send auts to SEAF\n'
-    print
-    client.send(auts)
+
 
 def Init():
     ki = '000000012449900000000010123456d8'
@@ -149,17 +158,21 @@ def Init():
 def main():
 
     ki, op, sn_name, sqn_max = Init()
-
+    fp = open('ue.log', 'a+')
+    # localtime = str(time.asctime(time.localtime(time.time())))
 
     #send SUCI to SEAF
     host = '127.0.0.1'
-    port = 7001#Seaf port
-    Send_To_SEAF(host,port)
+    port = 10000#Channel port
 
+    Send_To_SEAF(host,port)
+    fp.write(time.asctime(time.localtime(time.time()))+'        Send SUCI to SEAF.\n')
+    print 'UE:\n Send SUCI to SEAF.\n'
 
     #reveive Auth-Req from SEAF
     port2 = 9998#local port
     auth_req = reveive_authreq_from_SEAF(port2)
+    fp.write(time.asctime(time.localtime(time.time()))+'        Receive Auth-Req from SEAF.\n')
     # auth_req=binascii.hexlify(auth_req)
 
     rand = auth_req[:32]
@@ -179,17 +192,18 @@ def main():
     # print 'res:  '+res
 
     if check_mac(xmac_a, mac_a):
-       P0 = sn_name
-       L0 = binascii.hexlify(str(len(sn_name)))
-       res_star = KDF_res_star(ck, ik, P0, L0, rand, res)
-       print 'res* : '+res_star
+        P0 = sn_name
+        L0 = binascii.hexlify(str(len(sn_name)))
+        res_star = KDF_res_star(ck, ik, P0, L0, rand, res)
+        # print 'res* : '+res_star
 
-       Send_res_star_To_SEAF(res_star, host, port)
+        Send_res_star_To_SEAF(res_star, host, port)
+        fp.write(time.asctime(time.localtime(time.time()))+'        Access! Send res* to SEAF.\n')
     else:
-       auts = generate_auts(sqn_max, ak_star, xmac_s)
-       print 'auts is:'
-       print auts
-       Send_auts_To_SEAF(auts, host, port)
+        auts = generate_auts(sqn_max, ak_star, xmac_s)
+        Send_auts_To_SEAF(auts, host, port)
+        fp.write(time.asctime(time.localtime(time.time()))+'        AUTS Fails! Send auts to SEAF.\n')
+    fp.close()
 
 
 

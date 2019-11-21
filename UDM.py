@@ -7,6 +7,7 @@ import hmac
 from hashlib import sha256
 import socket
 import random
+import time
 
 #reveive SUCI, decrypt and generate SUPI
 def SUPI(suci):#suci length:21 supi length:
@@ -40,13 +41,12 @@ def KDF_xres(key, P0, L0, P1, L1,P2,L2):
     # print 's:' +s
     tmp=hmac.new(appsecret, s, digestmod=sha256).hexdigest()
     xres_star=tmp[32:]
-    print 'xres* :'+xres_star
     return xres_star
 
 def SentTo_AUSF(data,host,port):
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client.connect((host, port))
-    print 'send 5g he av To AUSF\n'
+    data = '01' + data
     client.send(data)
     client.close()
 
@@ -58,23 +58,12 @@ def receive_from_AUSF(port):
     server.bind(ADDR)
     server.listen(5)
     while True:
-        print 'Waiting for connection...'
+        print 'Waiting for connection with AUSF...'
         tcpCliSock,addr = server.accept()
-
-        print 'got connected from', addr
-        #global data
-        #data = 0
         data = tcpCliSock.recv(1024)
         tcpCliSock.close()
         server.close()
-        print 'get data from AUSF'
-
         return data
-        #if not data:
-         #   break
-        
-        #tcpCliSock.close()
-        #server.close()
 
 def Init():
     ki = '000000012449900000000010123456d8'
@@ -86,8 +75,10 @@ def Init():
     return ki,rand,sqn,amf,op
 
 def main():
+    fp = open('udm.log','a+')
     data=receive_from_AUSF(9999)
-
+    print 'Get SUCI and SN name from AUSF.\n'
+    fp.write(time.asctime(time.localtime(time.time()))+'        Get SUCI and SN name from AUSF.\n')
     data=str(data)
     suci = data[:21]
     supi = SUPI(suci)
@@ -101,11 +92,10 @@ def main():
     rand = binascii.unhexlify(rand)
     sqn = binascii.unhexlify(sqn)
     amf = binascii.unhexlify(amf)
-    # print 'amf is'
-    # print amf
+
     opc = milenage.MilenageGenOpc(ki, op)
     xres, ck, ik, AUTN, ak = milenage.Milenage(ki, opc, rand, sqn, amf)
-    # print 'xres:'+xres
+
 
     key = ck + ik
     # P0 = 'xiiian'  # accept from AUSF
@@ -124,17 +114,21 @@ def main():
     L2 = binascii.hexlify(str(len(xres)))
     AUTN = binascii.hexlify(AUTN)
     xres_star = KDF_xres(key, P0, L0, P1, L1, P2, L2)
-    # print str(len(rand))+' '+str(len(AUTN))+' '+str(len(xres_star))+'0'+str(len(K_ausf))
+
     rand=binascii.hexlify(rand)
     HE_AV = rand + AUTN + xres_star + K_ausf
-    # print 'the result of HE_AV is：\n'
+
     # # rand=32 AUTN=32 XRES_star=32 K_ausf=64
     # print HE_AV#160
-    # print 'the length of HE_AV is:' + str(len(HE_AV))
-    host3='127.0.0.1'
-    port3=6001
+
+    host3='127.0.0.1'#Channel Server IP
+    port3=10000 #Channel Server Port
     message=str(HE_AV)+str(supi)
     SentTo_AUSF(message,host3,port3)
+    print 'Send 5G HE AV and SUPI to AUSF.\n'
+    fp.write(time.asctime(time.localtime(time.time()))+'        Send 5G HE AV and SUPI to AUSF.\n')
+    fp.close()
+
 
     
 if __name__ == "__main__":
