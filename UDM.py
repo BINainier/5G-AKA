@@ -78,7 +78,7 @@ def main():
     fp = open('udm.log','a+')
     data=receive_from_AUSF(9999)
     print 'Get SUCI and SN name from AUSF.\n'
-    fp.write(time.asctime(time.localtime(time.time()))+'        Get SUCI and SN name from AUSF.\n')
+    fp.write(time.ctime()+'        Get SUCI and SN name from AUSF.\n')
     data=str(data)
     suci = data[:21]
     supi = SUPI(suci)
@@ -126,7 +126,7 @@ def main():
     message=str(HE_AV)+str(supi)
     SentTo_AUSF(message,host3,port3)
     print 'Send 5G HE AV and SUPI to AUSF.\n'
-    fp.write(time.asctime(time.localtime(time.time()))+'        Send 5G HE AV and SUPI to AUSF.\n')
+    fp.write(time.ctime()+'        Send 5G HE AV and SUPI to AUSF.\n')
     fp.close()
 
 

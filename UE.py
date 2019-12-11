@@ -159,20 +159,20 @@ def main():
 
     ki, op, sn_name, sqn_max = Init()
     fp = open('ue.log', 'a+')
-    # localtime = str(time.asctime(time.localtime(time.time())))
+    # localtime = str(time.ctime())
 
     #send SUCI to SEAF
     host = '127.0.0.1'
     port = 10000#Channel port
 
     Send_To_SEAF(host,port)
-    fp.write(time.asctime(time.localtime(time.time()))+'        Send SUCI to SEAF.\n')
+    fp.write(time.ctime()+'        Send SUCI to SEAF.\n')
     print 'UE:\n Send SUCI to SEAF.\n'
 
     #reveive Auth-Req from SEAF
     port2 = 9998#local port
     auth_req = reveive_authreq_from_SEAF(port2)
-    fp.write(time.asctime(time.localtime(time.time()))+'        Receive Auth-Req from SEAF.\n')
+    fp.write(time.ctime()+'        Receive Auth-Req from SEAF.\n')
     # auth_req=binascii.hexlify(auth_req)
 
     rand = auth_req[:32]
@@ -198,11 +198,11 @@ def main():
         # print 'res* : '+res_star
 
         Send_res_star_To_SEAF(res_star, host, port)
-        fp.write(time.asctime(time.localtime(time.time()))+'        Access! Send res* to SEAF.\n')
+        fp.write(time.ctime()+'        Access! Send res* to SEAF.\n')
     else:
         auts = generate_auts(sqn_max, ak_star, xmac_s)
         Send_auts_To_SEAF(auts, host, port)
-        fp.write(time.asctime(time.localtime(time.time()))+'        AUTS Fails! Send auts to SEAF.\n')
+        fp.write(time.ctime()+'        AUTS Fails! Send auts to SEAF.\n')
     fp.close()
 
 

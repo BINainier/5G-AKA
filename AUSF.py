@@ -95,11 +95,11 @@ def main():
             L0 = str(len(snName))  # length of sn name
             print 'Send SUCI and SNname To UDM.\n'
             SentTo_UDM(data, host3, port3)  # send it to UDM
-            fp.write(time.asctime(time.localtime(time.time()))+'        Send SUCI and SNname To UDM.\n')
+            fp.write(time.ctime()+'        Send SUCI and SNname To UDM.\n')
 
         elif length >= 160:
             print 'Receive 5g HE AV and SUPI from UDM.\n'
-            fp.write(time.asctime(time.localtime(time.time()))+'        Receive 5g HE AV and SUPI from UDM.\n')
+            fp.write(time.ctime()+'        Receive 5g HE AV and SUPI from UDM.\n')
             global xres_star
             xres_star = 0
             HE_AV, supi = UDM_resolve(data)
@@ -113,7 +113,7 @@ def main():
             message = str(AV) + str(supi)
             SentTo_SEAF(message, host2, port2)
             print 'Send 5g AV and SUPI To SEAF.\n'
-            fp.write(time.asctime(time.localtime(time.time()))+'        Send 5g AV and SUPI To SEAF.\n')
+            fp.write(time.ctime()+'        Send 5g AV and SUPI To SEAF.\n')
 
         elif length == 32:
             # print 'accept Xres* from SEAF'
@@ -122,7 +122,7 @@ def main():
                 message = 'successful from AUSF'
                 print 'Send Authenticate Response to SEAF.\n'
                 SentTo_SEAF(message, host2, port2)
-                fp.write(time.asctime(time.localtime(time.time()))+'        Send Authenticate Response to SEAF.\n')
+                fp.write(time.ctime()+'        Send Authenticate Response to SEAF.\n')
                 fp.close()
 
 
